@@ -1,0 +1,6 @@
+BOARD_WIDTH=9
+BOARD_HEIGHT=6
+
+# Meter -> 1000mm : 100cm : 1m
+# Meter -> 2.5cm -> 25mm -> 0.025m
+SQUARE_SIZE=0.025
