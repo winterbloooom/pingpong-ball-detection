@@ -1,0 +1,12 @@
+numpy
+torch
+torchvision
+tensorboard
+tensorboardX
+torchsummary
+pynvml
+imgaug
+onnx
+onnxruntime
+terminaltables
+tqdm

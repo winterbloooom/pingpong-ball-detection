@@ -1,0 +1,13 @@
+model/__pycache__/*
+.vscode
+*.pyc
+log
+output/Eval*
+*.pth
+test_code.py
+*.csv
+darknet53.conv.74
+pretrained/
+__pycache__/
+*.npy
+*.dll
