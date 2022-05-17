@@ -1,4 +1,3 @@
-train.txt
 video_001.jpg
 video_002.jpg
 video_003.jpg
