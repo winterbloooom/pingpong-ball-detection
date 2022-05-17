@@ -13,13 +13,14 @@ class Yolodata(Dataset):
     anno_dir = ""
     file_txt = ""
     # TODO 2 : setting Path
-    train_dir = "../datasets/train/"
+    train_dir = ".\\datasets\\train"
     train_txt = "train.txt"
-    valid_dir = "../datasets/eval/"
-    valid_txt = "all.txt"
+    valid_dir = ".\\datasets\\eval"
+    valid_txt = "eval.txt"
     class_str = ['ball']
     num_class = None
     img_data = []
+
     def __init__(self, is_train=True, transform=None, cfg_param=None):
         super(Yolodata, self).__init__()
         self.is_train = is_train
@@ -29,6 +30,7 @@ class Yolodata(Dataset):
             self.file_dir = self.train_dir+"\\JPEGImages\\"
             self.file_txt = self.train_dir+"\\ImageSets\\"+self.train_txt
             self.anno_dir = self.train_dir+"\\Annotations\\"
+            print(self.file_dir,self.file_txt, self.anno_dir)
         else:
             self.file_dir = self.valid_dir+"\\JPEGImages\\"
             self.file_txt = self.valid_dir+"\\ImageSets\\"+self.valid_txt
