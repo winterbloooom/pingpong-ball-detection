@@ -15,6 +15,7 @@ def get_transformations(cfg_param = None, is_train = None):
     if is_train:
         data_transform = tf.Compose([AbsoluteLabels(),
                                      FlipAug_tstl(),
+                                     FlipAugUD_tstl(),
                                      #PadSquare(),
                                      DefaultAug(),
                                      #ImageBaseAug(),
@@ -177,20 +178,20 @@ class ImgAug(object):
             image=img,
             bounding_boxes=bounding_boxes)
 
-        if len(self.augmentations.find_augmenters_by_name('fliplr_tstl')) != 0 and len(bounding_boxes) != 0:
-            augmented_box = bounding_boxes[0]
-            if origin_box.x1 != augmented_box.x1 or origin_box.x2 != augmented_box.x2:
-                use_flip = True # 좌표가 달라졌다면 flip 된 것.
-            else:
-                use_flip = False
+        # if len(self.augmentations.find_augmenters_by_name('fliplr_tstl')) != 0 and len(bounding_boxes) != 0:
+        #     augmented_box = bounding_boxes[0]
+        #     if origin_box.x1 != augmented_box.x1 or origin_box.x2 != augmented_box.x2:
+        #         use_flip = True # 좌표가 달라졌다면 flip 된 것.
+        #     else:
+        #         use_flip = False
 
-            if use_flip:
-                # 좌회전과 우회전을 flip 통해 바꿔줬다면 라벨도 바꿔주기
-                for box_idx, box in enumerate(bounding_boxes):
-                    if box.label == 0:
-                        bounding_boxes[box_idx].label = 1
-                    elif box.label == 1:
-                        bounding_boxes[box_idx].label = 0
+        #     if use_flip:
+        #         # 좌회전과 우회전을 flip 통해 바꿔줬다면 라벨도 바꿔주기
+        #         for box_idx, box in enumerate(bounding_boxes):
+        #             if box.label == 0:
+        #                 bounding_boxes[box_idx].label = 1
+        #             elif box.label == 1:
+        #                 bounding_boxes[box_idx].label = 0
         
         # Clip out of image boxes
         bounding_boxes = bounding_boxes.remove_out_of_image_fraction(0.4)
@@ -240,6 +241,13 @@ class FlipAug_tstl(ImgAug):
         self.augmentations = iaa.Sequential([
                 iaa.Fliplr(0.5, name='fliplr_tstl')
         ])
+
+class FlipAugUD_tstl(ImgAug):
+    def __init__(self, ):
+        self.augmentations = iaa.Sequential([
+                iaa.Flipud(0.5, name='flipud_tstl')
+        ])
+
 
 
 class AbsoluteLabels(object):
