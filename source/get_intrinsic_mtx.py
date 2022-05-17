@@ -3,7 +3,12 @@ import cv2
 from glob import glob
 import os
 import json
+import sys
 
+"""
+NOTE
+source 폴더에서 실행합시다!
+"""
 
 def get_intrinsic_info(image_path=None, CHESSBOARD_WIDTH=9, CHESSBOARD_HEIGHT=6):
     image_list = glob(image_path + "/*.jpg")
@@ -51,33 +56,28 @@ def get_intrinsic_info(image_path=None, CHESSBOARD_WIDTH=9, CHESSBOARD_HEIGHT=6)
         #     sub += sum((det - proj)[0])
         # print(sub)
 
-    intrinsic_info = dict()
+    calibration = dict()
 
+    intrinsic_info = dict()
     intrinsic_info['fx'] = camera_matrix[0, 0]
     intrinsic_info['fy'] = camera_matrix[1, 1]
     intrinsic_info['cx'] = camera_matrix[0, 2]
     intrinsic_info['cy'] = camera_matrix[1, 2]
 
-    intrinsic = dict()
-
-    intrinsic["intrinsic"] = intrinsic_info
-
-    distcoffs = distcoffs.tolist()
-    print(type(distcoffs))
+    calibration["intrinsic"] = intrinsic_info
     
     extrinsic_info = dict()
+    rvecs_list = [rvec.tolist() for rvec in rvecs]
+    extrinsic_info['rvecs'] = rvecs_list
+    tvecs_list = [tvec.tolist() for tvec in tvecs]
+    extrinsic_info['tvecs'] = tvecs_list
+    distcoffs = distcoffs.tolist()
+    extrinsic_info['distortion_coff'] = distcoffs
 
-    extrinsic_info['rvecs'] = rvecs
-    extrinsic_info['tvecs'] = tvecs
-    extrinsic_info['distortion coff'] = distcoffs
+    calibration["extrinsic"] = extrinsic_info
 
-    extrinsic = dict()
-
-    extrinsic["intrinsic"] = extrinsic_info
-
-    with open("./config/intrinsic.json", "w") as config_file:
-        json.dump(intrinsic, config_file, indent=4)
-        json.dump(extrinsic, config_file, indent=4)
+    with open("../calibration.json", "w") as config_file:
+        json.dump(calibration, config_file, indent=4)
 
 if __name__ == "__main__":
-    get_intrinsic_info("./img")
+    get_intrinsic_info("../chessboard")
