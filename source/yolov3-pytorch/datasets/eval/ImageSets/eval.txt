@@ -20,14 +20,3 @@ eval_video_019
 eval_video_020
 eval_video_021
 eval_video_022
-eval_video_023
-eval_video_024
-eval_video_025
-eval_video_026
-eval_video_027
-eval_video_028
-eval_video_029
-eval_video_030
-eval_video_031
-eval_video_032
-eval_video_033

@@ -72,7 +72,7 @@ class YoloLoss(nn.Module):
         # TODO 5 : add loss method
         lcls *= 0.01
         lobj *= 1.0
-        lbox *= 0.5
+        lbox *= 0.8
         
         loss = lcls + lobj + lbox
         loss_list = [loss.item(), lobj.item(), lcls.item(), lbox.item()]

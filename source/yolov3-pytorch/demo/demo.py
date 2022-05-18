@@ -26,15 +26,15 @@ class Demo:
             with torch.no_grad():
                 output = self.model(input_img)
                 best_box_list = non_max_suppression(output,
-                                                    conf_thres=0.4,
-                                                    iou_thres=0.45)
+                                                    conf_thres=0.1,
+                                                    iou_thres=0.5)
 
                 for b in range(num_batch):
                     if best_box_list[b] is None:
                         continue
-                    print(best_box_list[b])
-                    final_box_list = [bbox for bbox in best_box_list[b] if bbox[4] > 0.5]
-                    print("final :", final_box_list)
+                    #print(best_box_list[b])
+                    final_box_list = [bbox for bbox in best_box_list[b] if bbox[4] > 0]
+                    #print("final :", final_box_list)
 
                     if final_box_list is None:
                         continue
