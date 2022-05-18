@@ -3,6 +3,7 @@ model/__pycache__/*
 *.pyc
 log
 output/Eval*
+*.pth
 test_code.py
 *.csv
 darknet53.conv.74
