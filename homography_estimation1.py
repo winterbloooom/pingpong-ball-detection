@@ -94,23 +94,31 @@ if __name__ == "__main__":
         homo_object_point = np.append(object_points[:,2:3], object_points[:,1:2],axis=1)
         homo_object_point = np.append(homo_object_point, np.ones([1,DATA_SIZE]).T, axis=1)
 
+        #world coordinate를 표현한 축 Draw
         retval, rvec, tvec = cv2.solvePnP(object_points, image_points, camera_matrix, None, flags = cv2.SOLVEPNP_EPNP)
-        train_image = cv2. drawFrameAxes(train_image, camera_matrix, None, rvec, tvec, 5,7)
+        train_image = cv2.drawFrameAxes(train_image, camera_matrix, None, rvec, tvec, 5,7)
+        
         homography, _ = cv2.findHomography(image_points, homo_object_point)
+        
+        # homography Matrix pickle 형식으로 저장
         with open("homography.pickle","wb") as fw:
             pickle.dump(homography, fw)
 
+        # Draw Point and show Distance
         image = d_tool.draw_distance(train_image, homography, image_points)
 
     else:
+        # homography Matrix 불러오기
         with open("homography.pickle","rb") as fr:
             homography = pickle.load(fr)
 
+        # Distance Estimation Point 
         test_image_points=np.array([
             [156, 252],
             [425, 255],
         ],dtype=np.float32)
 
+        # Draw Point and show Distance
         image = d_tool.draw_distance(test_image, homography, test_image_points)
 
     plt.imshow(image)
