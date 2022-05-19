@@ -11,3 +11,4 @@ pretrained/
 __pycache__/
 *.npy
 *.dll
+*.pyc
