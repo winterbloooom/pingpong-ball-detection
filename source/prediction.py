@@ -4,21 +4,29 @@
 # import rospy
 import cv2, math, json, sys
 import numpy as np
-# from yolov3_trt.msg import BoundingBoxes, BoundingBox
+from yolov3_trt.msg import BoundingBoxes, BoundingBox
 
-# from sensor_msgs.msg import Image
-# from cv_bridge import CvBridge
+from sensor_msgs.msg import Image
+from cv_bridge import CvBridge
+
+class BoundingBox:
+    def __init__(self):
+        self.xmin = 297
+        self.xmax = 328
+        self.ymin = 297
+        self.ymax = 328
 
 class Detect:
     def __init__(self):
-        # rospy.Subscriber('/yolov3_trt_ros/detections', BoundingBoxes, self.bbox_callback, queue_size=1)
-        # self.bboxes = []
+        rospy.Subscriber('/yolov3_trt_ros/detections', BoundingBoxes, self.bbox_callback, queue_size=1)
+        self.bboxes = []
+        self.distances = []
 
-        # rospy.Subscriber("/usb_cam/image_raw/", Image, self.img_callback)
-        # self.bridge = CvBridge()
+        rospy.Subscriber("/usb_cam/image_raw/", Image, self.img_callback)
+        self.bridge = CvBridge()
         self.image = None
 
-        self.camera_height = 0.14    # 자이카에서 카메라까지 높이
+        self.camera_height = 0.165    # 자이카에서 카메라까지 높이
 
         self.json_path = "C:\\coding\\pingpong-ball-detection\\calibration.json" # TODO 파일 경로 넣기
         self.camera_matrix, self.dist_coeff = self.parse_calibration(self.json_path)
@@ -47,12 +55,57 @@ class Detect:
 
         return camera_matrix
 
+
     def bbox_callback(self, msg):
         for box in msg.bounding_boxes:
             self.bboxes.append(box)
 
+
     def img_callback(self, msg):
-        self.image = self.bridge.imgmsg_to_cv2(msg, "bgr8")
+        image_raw = self.bridge.imgmsg_to_cv2(msg, "bgr8")
+        self.image = self.undistort_imgs(image_raw)
+
+
+    def predict(self):
+        distances = []
+        for bbox in self.bboxes:
+            dist = self.projection_method(bbox)
+            #dist = self.homo       # TODO homography 방식
+            distances.append(dist)    # projection 방식
+        self.draw_on_image(distances)
+        cv2.imshow("show", self.image)
+
+
+    def projection_method(self, bbox):
+        # image_width_half = 320  # TODO 확인
+        # image_height_half = 240
+        image_width_half = self.image.shape[0] / 2  # TODO 확인
+        image_height_half = self.image.shape[1] / 2
+        print("image_width_half {}".format(image_width_half))
+
+        bbox_width = abs(bbox.xmax - bbox.xmin) #px
+        cx_from_mid = (bbox.xmax + bbox.xmin) / 2 - image_width_half
+        cy_from_mid = (bbox.ymax + bbox.ymin) / 2 - image_height_half
+        
+        f = self.camera_matrix[0][0]
+        FOV_H_half = 46.7
+        FOV_V_half = 38
+
+        real_width = 0.04   # m
+
+        xz_azimuth = FOV_H_half * cx_from_mid / image_width_half
+        yz_azimuth = (FOV_V_half * cy_from_mid) / image_height_half
+        print("xz_azimuth {} / yz_azimuth {}".format(xz_azimuth, yz_azimuth))
+
+        Z = (real_width * f) / bbox_width
+        X = abs(Z * math.tan(math.radians(xz_azimuth)))
+        Y = abs(Z * math.tan(math.radians(yz_azimuth)))  # TODO Wrong!
+        print("X {} Y {} Z {}".format(X, Y, Z))
+
+        dist = math.sqrt(X ** 2 + Z ** 2)
+
+        return dist
+
 
     def projection_method_longitudinal(self):
         """
@@ -89,53 +142,16 @@ class Detect:
             cv2.imshow("result", display_image)
             if cv2.waitKey(1) == 27:
                 break
-        
-    def projection_method(self, bbox_x, bbox_y, bbox_w, bbox_h):
-        FOV_verti = 127.5
-        half_FOV_verti = FOV_verti / 2
-        FOV_horiz = 170
-        half_FOV_horiz = FOV_horiz / 2
-        fx = self.camera_matrix[0][0]
-        fy = self.camera_matrix[1][1]
-        cx = self.camera_matrix[0][2]    # TODO calibration의 값을 써야 할지??
-        cy = self.camera_matrix[1][2]
 
-        azimuth_horiz = abs(cx - bbox_x) * (FOV_horiz / 2) / cx
-        # d = fx * (bbox_h / (2*math.tan(azimuth_horiz))) / ((bbox_h / 2 * math.tan(azimuth_horiz)) - fx)
-        azimuth_verti = abs(cy - bbox_y) * (FOV_verti / 2) / cy
-        print("azimuth_horiz {0:03.3f} / azimuth_verti {1:03.3f}".format(azimuth_horiz, azimuth_verti))
 
-        d_ZX = (fx * (bbox_w/(2 * math.tan(azimuth_horiz))))/((bbox_w / (2 * math.tan(azimuth_horiz))) - fx) #(self.camera_matrix[0][0] * bbox_w) / (bbox_w - 2 * self.camera_matrix[0][0] * math.tan(azimuth_horiz / 2))
-        d_YZ = (fy * (bbox_h/(2 * math.tan(half_FOV_verti))))/((bbox_h / (2 * math.tan(half_FOV_verti))) - fy)#(self.camera_matrix[1][1] * bbox_h) / (bbox_h - 2 * self.camera_matrix[1][1] * math.tan(azimuth_verti / 2))
-        print("d_ZX {} / d_YZ {}".format(d_ZX, d_YZ))
+    def draw_on_image(self, distances):
+        for bbox, dist in zip(self.bboxes, distances):
+            print(bbox.xmin, bbox.ymin, dist)
+            dist = str(round(dist, 3))
+            cv2.rectangle(self.image, (bbox.xmin, bbox.ymin), (bbox.xmax, bbox.ymax), (0, 0, 255), 1, cv2.LINE_AA)
+            cv2.putText(self.image, dist, (bbox.xmin, bbox.ymin + 1), cv2.FONT_HERSHEY_SIMPLEX, (0, 0, 255), 1)
 
-        X = d_ZX * math.sin(azimuth_horiz)
-        Y = d_YZ * math.sin(FOV_verti / 2)
-        print("X {} / Y {}".format(X, Y))
-
-        Z_from_horiz = d_ZX * math.cos(azimuth_horiz)
-        Z_from_verti = d_YZ * math.cos(FOV_verti / 2)
-        print("Z_from_horiz {} \nZ_from_verti {}".format(Z_from_horiz, Z_from_verti))
-
-    def projection_method_longitudinal(self):
-        y_norm = (328 - self.camera_matrix[1][2]) / self.camera_matrix[1][1]
-            # Normalized Image Plane
-        print(y_norm)
-
-        distance = float(1 * 0.15 / y_norm)
-            # normalized image plane에서는 focal length를 1로 // Z값이 1
-        print(distance)
-
-    def projection_method_longitudinal2(self):
-        x_norm = (640 - self.camera_matrix[0][2]) / self.camera_matrix[0][0]
-            # Normalized Image Plane
-
-        distance = float(1 * 0.4 / x_norm)
-            # normalized image plane에서는 focal length를 1로 // Z값이 1
-        print(distance)
 
 d = Detect()
-# d.projection_method(313, 312, 31, 31)
-# d.projection_method(630, 304, 31, 28)
-d.projection_method_longitudinal2()
-
+# bbox = BoundingBox()    # TODO temp
+d.predict()
