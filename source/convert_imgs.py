@@ -2,15 +2,16 @@
 #-*- coding:utf-8 -*-
 
 import sys, os
+import matplotlib.pyplot as plt
 import cv2
 import glob
 import numpy as np
 from cv2 import undistort
 
 def undistort_imgs(camera_matrix, dist_coeffs):
-    raw_path_list = glob.glob("C:\\coding\\pingpong-ball-detection\\dataset\\train\\RawImages\\*.jpg")
+    raw_path_list = glob.glob("C:\\coding\\pingpong-ball-detection\\source\\img\\*.jpg")
         # TODO 상대경로로 하니 잘 안 나옴. 자이카 적용 시 경로 바꾸기
-    output_path = "C:\\coding\\pingpong-ball-detection\\dataset\\train\\JPEGImages"
+    output_path = "C:\\coding\\pingpong-ball-detection\\source\\output"
         # TODO 자이카 적용 시 경로 바꾸기
 
     if not os.path.isdir(output_path):
@@ -38,4 +39,13 @@ xycar_dist = np.array([[-0.303637,  0.070669,  0.002487,  -0.000932, 0.000000]])
 
 newrun_intrin = np.array([[383.42387256, 0.0, 335.70612309], [0.0, 382.93669554, 203.52649621], [0.0, 0.0, 1.0]])
 xycar_intrin = np.array([[344.774722, 0.000000, 312.944372], [0.000000, 346.412761, 207.474168], [0.000000, 0.000000, 1.000000]])
-undistort_imgs(newrun_intrin, newrun_dist)
+# undistort_imgs(newrun_intrin, newrun_dist)
+
+def show_img(path):
+    img = cv2.imread(path, cv2.IMREAD_ANYCOLOR)
+    display_image = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    plt.imshow(display_image)
+    plt.show()
+
+path = "C:\\coding\\pingpong-ball-detection\\source\\output\\img_1.jpg"
+show_img(path)
