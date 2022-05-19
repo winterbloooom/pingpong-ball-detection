@@ -15,8 +15,8 @@ class Yolodata(Dataset):
     # TODO 2 : setting Path
     train_dir = ".\\datasets\\train"
     train_txt = "train.txt"
-    valid_dir = ".\\datasets\\train"
-    valid_txt = "train.txt"
+    valid_dir = ".\\datasets\\eval"
+    valid_txt = "eval.txt"
     class_str = ['ball']
     num_class = None
     img_data = []
