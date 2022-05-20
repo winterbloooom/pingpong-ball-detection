@@ -11,7 +11,17 @@ class Demo:
         self.preds = None
 
     def run(self):
-        for i, batch in enumerate(self.data_loader):
+        answers=[]
+        #file_txt = "..\\datasets\\test\\ImageSets\\test.txt"
+        file_txt = "C:\\Users\\dogu\\Desktop\\PPB Detection\\pingpong-ball-detection\\source\\yolov3-pytorch\\datasets\\test\\ImageSets\\test.txt"
+        img_names = []
+        img_data = []
+        with open(file_txt, 'r', encoding='UTF-8', errors='ignore') as f:
+            img_names = [ i.replace("\n", "") for i in f.readlines()]
+        for i in img_names:
+            img_data.append(i+".jpg")
+
+        for i, (batch, img_name) in enumerate(zip(self.data_loader,img_names)):
             #drop the invalid frames
             if batch is None:
                 continue
@@ -28,8 +38,9 @@ class Demo:
                 best_box_list = non_max_suppression(output,
                                                     conf_thres=0.1,
                                                     iou_thres=0.5)
-
+                
                 for b in range(num_batch):
+                #for b, img_name in enumerate(img_names):
                     if best_box_list[b] is None:
                         continue
                     #print(best_box_list[b])
@@ -40,3 +51,10 @@ class Demo:
                         continue
                     show_img = input_img[b].detach().cpu().numpy()
                     drawBoxlist(show_img, final_box_list, mode=1, name = str(i)+"_"+str(b))
+                    print(final_box_list)
+                    for ans_list in save_csv(final_box_list, name = img_name):
+                        answers.append(ans_list)
+
+        pd_answer=pd.DataFrame(answers)
+        pd_answer.to_csv("D:/temp/test_img/answer.csv",header=None, index=None)
+

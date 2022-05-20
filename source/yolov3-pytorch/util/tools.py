@@ -7,6 +7,8 @@ import random
 import tqdm
 import torchvision
 import sys, os
+import pandas as pd
+
 def ap_per_class(tp, conf, pred_cls, target_cls):
     """ Compute the average precision, given the recall and precision curves.
     Source: https://github.com/rafaelpadilla/Object-Detection-Metrics.
@@ -150,6 +152,7 @@ def worker_seed_set(worker_id):
     worker_seed = torch.initial_seed() % 2**32
     random.seed(worker_seed)
 
+#TODO minmax2cxcy
 def minmax2cxcy(box):
     if len(box) != 4:
         return torch.FloatTensor([0,0,0,0])
@@ -167,6 +170,7 @@ def minmax2cxcy(box):
         box[1] = cy
         box[2] = w
         box[3] = h
+    return box
 
 def show_img(img_data, text):
     _img_data = img_data[0] *255
@@ -362,6 +366,8 @@ def drawBox(_img, boxes = None, cls = None, mode = 0, color = (0,255,0)):
             else:
                 draw.rectangle((box[0],box[1],box[2],box[3]), outline=(0,255,0), width=1)
             draw.text((box[0],box[1]), str(int(cls[i])), fill ="red", font=font)
+
+
     plt.imshow(img_data)
     plt.show()
 
@@ -380,7 +386,7 @@ def drawBoxlist(_img, boxes : list = [], mode : int = 0, name : str = ""):
     #check=False
     for box in boxes:
         if len(box)!=0:
-            print("box:{}, img_name:{}".format(box, name))
+            #print("box:{}, img_name:{}".format(box, name))
             #check=True
             if mode == 0:
                 draw.rectangle((box[0] - box[2]/2, box[1] - box[3]/2, box[0] + box[2]/2, box[1] + box[3]/2), outline=(0,255,0), width=1)
@@ -388,12 +394,22 @@ def drawBoxlist(_img, boxes : list = [], mode : int = 0, name : str = ""):
             else:
                 draw.rectangle((box[0],box[1],box[2],box[3]), outline=(0,255,0), width=1)
                 draw.text((box[0],box[1]), str(int(box[5]))+","+str(int(box[4]*100)), fill ="red", font=font)
+    
+
     #img_data.show("draw")
-    directory="C:/Users/dogu/Desktop/temp/cls_bbox/"
+    directory="D:/temp/test_img/"
     if not os.path.exists(directory):
         os.makedirs(directory)
     #if check:
-    img_data.save(directory+name+".png")
+    img_data.save(directory+name+".jpg")
+
+def save_csv(boxes, name : str = ""):
+    answer_list = []
+    for box in boxes:
+        if len(box)!=0:
+            answer_list.append([(name+".jpg"),0 ,float(box[0])/640, float(box[1])/480, float(box[2]-box[0])/640,float(box[3]-box[1])/480])
+
+    return answer_list
 
 def check_outrange(box, img_size):
     box = box.detach().cpu().numpy()
