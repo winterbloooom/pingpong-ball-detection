@@ -15,8 +15,8 @@ class Yolodata(Dataset):
     # TODO 2 : setting Path
     train_dir = ".\\datasets\\train"
     train_txt = "train.txt"
-    valid_dir = ".\\datasets\\eval"
-    valid_txt = "eval.txt"
+    valid_dir = ".\\datasets\\test"
+    valid_txt = "test.txt"
     class_str = ['ball']
     num_class = None
     img_data = []
@@ -40,6 +40,8 @@ class Yolodata(Dataset):
         img_data = []
         with open(self.file_txt, 'r', encoding='UTF-8', errors='ignore') as f:
             img_names = [ i.replace("\n", "") for i in f.readlines()]
+
+        
         for i in img_names:
             if os.path.exists(self.file_dir + i + ".jpg"):
                 img_data.append(i+".jpg")
