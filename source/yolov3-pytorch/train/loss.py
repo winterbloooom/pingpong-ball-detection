@@ -50,7 +50,7 @@ class YoloLoss(nn.Module):
                 
                 tobj[batch_id, anc_id, gy, gx] = iou.detach().clamp(0).type(tobj.dtype)
                 
-                if ps.size(1) - 5 > 1:
+                if ps.size(1) - 5 >= 1:
                     #all class loss
                     t = torch.zeros_like(ps[...,5:], device=self.device)
                     t[range(num_targets), tcls[pidx]] = 1
@@ -70,7 +70,7 @@ class YoloLoss(nn.Module):
             lobj += self.bcellogloss(pout[...,4], tobj)
             # sys.exit(1)
         # TODO 5 : add loss method
-        lcls *= 0.01
+        lcls *= 0.3
         lobj *= 1.0
         lbox *= 0.8
         

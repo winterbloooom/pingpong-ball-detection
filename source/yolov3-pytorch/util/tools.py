@@ -389,7 +389,7 @@ def drawBoxlist(_img, boxes : list = [], mode : int = 0, name : str = ""):
                 draw.rectangle((box[0],box[1],box[2],box[3]), outline=(0,255,0), width=1)
                 draw.text((box[0],box[1]), str(int(box[5]))+","+str(int(box[4]*100)), fill ="red", font=font)
     #img_data.show("draw")
-    directory="C:/Users/dogu/Desktop/temp/eval_bbox4/"
+    directory="C:/Users/dogu/Desktop/temp/cls_bbox/"
     if not os.path.exists(directory):
         os.makedirs(directory)
     #if check:
