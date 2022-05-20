@@ -377,15 +377,23 @@ def drawBoxlist(_img, boxes : list = [], mode : int = 0, name : str = ""):
     draw = ImageDraw.Draw(img_data)
     fontsize = 15
     font = ImageFont.truetype("./arial.ttf", fontsize)
-    for box in boxes:       
-        if mode == 0:
-            draw.rectangle((box[0] - box[2]/2, box[1] - box[3]/2, box[0] + box[2]/2, box[1] + box[3]/2), outline=(0,255,0), width=1)
-            draw.text((box[0],box[1]), str(int(box[5]))+","+str(int(box[4]*100)) , fill ="red", font=font)
-        else:
-            draw.rectangle((box[0],box[1],box[2],box[3]), outline=(0,255,0), width=1)
-            draw.text((box[0],box[1]), str(int(box[5]))+","+str(int(box[4]*100)), fill ="red", font=font)
+    #check=False
+    for box in boxes:
+        if len(box)!=0:
+            print("box:{}, img_name:{}".format(box, name))
+            #check=True
+            if mode == 0:
+                draw.rectangle((box[0] - box[2]/2, box[1] - box[3]/2, box[0] + box[2]/2, box[1] + box[3]/2), outline=(0,255,0), width=1)
+                draw.text((box[0],box[1]), str(int(box[5]))+","+str(int(box[4]*100)) , fill ="red", font=font)
+            else:
+                draw.rectangle((box[0],box[1],box[2],box[3]), outline=(0,255,0), width=1)
+                draw.text((box[0],box[1]), str(int(box[5]))+","+str(int(box[4]*100)), fill ="red", font=font)
     #img_data.show("draw")
-    img_data.save(name+".png")
+    directory="C:/Users/dogu/Desktop/temp/cls_bbox/"
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    #if check:
+    img_data.save(directory+name+".png")
 
 def check_outrange(box, img_size):
     box = box.detach().cpu().numpy()
