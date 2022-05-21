@@ -12,14 +12,13 @@ class Demo:
         self.device = device
         self.yololoss = YoloLoss(self.device, self.model.n_classes, hparam['ignore_cls'])
         self.preds = None
-        self.json_path = "C:\\Users\\dogu\\Desktop\\PPB Detection\\pingpong-ball-detection\\source\\calibration.json" # FIXME calibration JSON 파일 경로 넣기
+        self.json_path = "..\\calibration.json" # FIXME calibration JSON 파일 경로 넣기
         self.camera_matrix, self.dist_coeff = read_json_file(self.json_path)
 
     def run(self, mode='None'):
         answers=[]
         # FIXME test file_txt 경로 수정
-        #file_txt = "..\\datasets\\test\\ImageSets\\test.txt"
-        file_txt = "C:\\Users\\dogu\\Desktop\\PPB Detection\\pingpong-ball-detection\\source\\yolov3-pytorch\\datasets\\test\\ImageSets\\test.txt"
+        file_txt = ".\\datasets\\test2\\ImageSets\\test.txt"
         
         img_names = []
 

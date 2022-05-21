@@ -15,7 +15,7 @@ class Yolodata(Dataset):
     train_dir = ".\\datasets\\train"
     train_txt = "train.txt"
     #FIXME datasets 경로 수정
-    valid_dir = ".\\datasets\\test"
+    valid_dir = ".\\datasets\\test2"
     valid_txt = "test.txt"
     class_str = ['ball']
     num_class = None

@@ -414,7 +414,7 @@ def save_csv(boxes, name : str = ""):
 
 def get_focal_length():
     # FIXME 경로 변경합시다!
-    with open("C:\\Users\\dogu\\Desktop\\PPB Detection\\pingpong-ball-detection\\source\\calibration.json", "r",) as f:
+    with open("..\\calibration.json", "r",) as f:
         calibration_json = json.load(f)
     return calibration_json["intrinsic"]["fx"]
 
@@ -427,7 +427,7 @@ def predict_distance(boxes, img_name):
             dist = projection_method(box)
             distances.append(dist)    # dist = [X, Z]
         distances.sort()
-        output_dist = [img_name+".jpg"] + sum(distances, [])    # 2차원 -> 1차원
+        output_dist = [img_name] + sum(distances, [])    # 2차원 -> 1차원
         answer_list.append(output_dist)
 
     return answer_list
