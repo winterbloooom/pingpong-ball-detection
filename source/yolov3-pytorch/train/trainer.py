@@ -80,7 +80,7 @@ class Trainer:
             if batch is None:
                 continue
             input_img, targets, anno_path = batch
-            # TODO 10
+    
             #print("shape:",input_img.shape)
             #show_img(input_img.to("cpu").numpy(),i)
 

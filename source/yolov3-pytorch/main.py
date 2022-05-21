@@ -247,7 +247,12 @@ def demo(cfg_param = None, using_gpus = None):
 
     demo = Demo(model, data, demo_loader, device, cfg_param)
     
-    demo.run()
+    # FIXME 답안을 출력하고 싶을 때 해당 함수의 인자 값을 수정
+    # None / dist / detect
+    # demo.run("None")
+    # demo.run("detect")
+    demo.run("dist")
+
 
 
 #convert trained yolov3 model from pytorch to ONNX format 

@@ -50,7 +50,7 @@ for class_name, bbox in zip(class_names, boxes_2d):
 
     print(int(distance))
     cv2.rectangle(undist_image, (xmin, ymin), (xmax, ymax), (0, 0, 255), 3)
-    cv2.putText(undist_image, f"{index}-{class_name}-{int(distance)}", (xmin, ymin+25), 1, 2, (255, 255, 0), 2)
+    
     index += 1
 
 display_image = cv2.cvtColor(undist_image, cv2.COLOR_BGR2RGB)

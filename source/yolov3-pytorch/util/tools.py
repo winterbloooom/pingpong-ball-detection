@@ -152,7 +152,6 @@ def worker_seed_set(worker_id):
     worker_seed = torch.initial_seed() % 2**32
     random.seed(worker_seed)
 
-#TODO minmax2cxcy
 def minmax2cxcy(box):
     if len(box) != 4:
         return torch.FloatTensor([0,0,0,0])
@@ -371,7 +370,7 @@ def drawBox(_img, boxes = None, cls = None, mode = 0, color = (0,255,0)):
     plt.imshow(img_data)
     plt.show()
 
-def drawBoxlist(_img, boxes : list = [], mode : int = 0, name : str = ""):
+def drawBoxlist(_img, boxes : list = [], mode : int = 0, name : str = "", folder : str = ""):
     _img = _img * 255
     #img dim is [C,H,W]
     if _img.shape[0] == 3:
@@ -396,25 +395,26 @@ def drawBoxlist(_img, boxes : list = [], mode : int = 0, name : str = ""):
                 draw.text((box[0],box[1]), str(int(box[5]))+","+str(int(box[4]*100)), fill ="red", font=font)
     
 
-    #img_data.show("draw")
-    directory="D:/temp/test_img3/"
+    # FIXME BBOX 그려진 img 저장용
+    directory="D:/temp/test_img_{}/".format(folder)
     if not os.path.exists(directory):
         os.makedirs(directory)
     #if check:
-    img_data.save(directory+name+".jpg")
+    img_data.save(directory+name)
 
 def save_csv(boxes, name : str = ""):
     answer_list = []
     for box in boxes:
         if len(box)!=0:
-            answer_list.append([(name+".jpg"),0 ,float(box[0])/640, float(box[1])/480, float(box[2]-box[0])/640,float(box[3]-box[1])/480])
+            answer_list.append([(name),0 ,float(box[0])/640, float(box[1])/480, float(box[2]-box[0])/640,float(box[3]-box[1])/480])
 
     return answer_list
+
 ###### distance prediction ##############
 
 def get_focal_length():
-    # TODO 경로 변경합시다!
-    with open("C:\\Users\\dogu\\Desktop\\PPB Detection\\pingpong-ball-detection\\source\\calibration.json", "r",) as f:
+    # FIXME 경로 변경합시다!
+    with open("..\\calibration.json", "r",) as f:
         calibration_json = json.load(f)
     return calibration_json["intrinsic"]["fx"]
 
@@ -427,7 +427,7 @@ def predict_distance(boxes, img_name):
             dist = projection_method(box)
             distances.append(dist)    # dist = [X, Z]
         distances.sort()
-        output_dist = [img_name+".jpg"] + sum(distances, [])    # 2차원 -> 1차원
+        output_dist = [img_name] + sum(distances, [])    # 2차원 -> 1차원
         answer_list.append(output_dist)
 
     return answer_list
