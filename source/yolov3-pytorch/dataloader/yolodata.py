@@ -12,10 +12,10 @@ class Yolodata(Dataset):
     file_dir = ""
     anno_dir = ""
     file_txt = ""
-    # TODO 2 : setting Path
     train_dir = ".\\datasets\\train"
     train_txt = "train.txt"
-    valid_dir = ".\\datasets\\test2"
+    #FIXME datasets 경로 수정
+    valid_dir = ".\\datasets\\test"
     valid_txt = "test.txt"
     class_str = ['ball']
     num_class = None
@@ -51,6 +51,7 @@ class Yolodata(Dataset):
                 img_data.append(i+".png")
             elif os.path.exists(self.file_dir + i + ".PNG"):
                 img_data.append(i+".PNG")
+                
         print("data len : {}".format(len(img_data)))
         self.img_data = img_data
 
