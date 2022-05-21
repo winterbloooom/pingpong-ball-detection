@@ -6,7 +6,7 @@ import math
 import random
 import tqdm
 import torchvision
-import sys, os
+import sys, os,json 
 import pandas as pd
 
 def ap_per_class(tp, conf, pred_cls, target_cls):
@@ -397,7 +397,7 @@ def drawBoxlist(_img, boxes : list = [], mode : int = 0, name : str = ""):
     
 
     #img_data.show("draw")
-    directory="D:/temp/test_img/"
+    directory="D:/temp/test_img3/"
     if not os.path.exists(directory):
         os.makedirs(directory)
     #if check:
@@ -410,6 +410,60 @@ def save_csv(boxes, name : str = ""):
             answer_list.append([(name+".jpg"),0 ,float(box[0])/640, float(box[1])/480, float(box[2]-box[0])/640,float(box[3]-box[1])/480])
 
     return answer_list
+###### distance prediction ##############
+
+def get_focal_length():
+    # TODO 경로 변경합시다!
+    with open("C:\\Users\\dogu\\Desktop\\PPB Detection\\pingpong-ball-detection\\source\\calibration.json", "r",) as f:
+        calibration_json = json.load(f)
+    return calibration_json["intrinsic"]["fx"]
+
+def predict_distance(boxes, img_name):
+    answer_list = []
+    if len(boxes)!=0:
+        distances = []
+        for box in boxes:
+            
+            dist = projection_method(box)
+            distances.append(dist)    # dist = [X, Z]
+        distances.sort()
+        output_dist = [img_name+".jpg"] + sum(distances, [])    # 2차원 -> 1차원
+        answer_list.append(output_dist)
+
+    return answer_list
+
+def projection_method(bbox):
+    bbox = bbox.numpy()
+    xmin, ymin, xmax, ymax = bbox[:4]
+    xmin = float(xmin)*(640/416)
+    ymin = float(ymin)*(480/416)
+    xmax = float(xmax)*(640/416)
+    ymax = float(ymax)*(480/416)
+
+    image_width_half = 208
+    image_height_half = 208
+        # TODO undistort를 하면 크기가 줄어들텐데 그걸 반영하고 싶다...!
+
+    bbox_width = abs(xmax - xmin) #px
+    cx_from_mid = (xmax + xmin) / 2 - image_width_half
+    cy_from_mid = (ymax + ymin) / 2 - image_height_half
+    
+    FOV_H_half = 24 #46.7
+    FOV_V_half = 26 #38
+    f = get_focal_length()
+
+    real_width = 0.04   # m
+    X_offset = 0.16    # from camera to lidar
+
+    xz_azimuth = FOV_H_half * cx_from_mid / image_width_half
+    yz_azimuth = (FOV_V_half * cy_from_mid) / image_height_half
+
+    Z = (real_width * f) / bbox_width
+    X = Z * math.tan(math.radians(xz_azimuth)) - X_offset
+
+    return [X * 100, Z * 100]   # m -> cm
+
+###########################################
 
 def check_outrange(box, img_size):
     box = box.detach().cpu().numpy()
