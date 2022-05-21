@@ -4,21 +4,22 @@ import cv2
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-import calibration_parser
-import distance_tool1 as d_tool
+from util.distance_tool import *
+from util.calibration_parser import *
 import pickle       # Homography Matrix 저장 포맷
 
-if __name__ == "__main__":
-    calibration_json_filepath = os.path.abspath("calibration.json")             # intrinsic matrix 포함 json 파일
-    camera_matrix=calibration_parser.read_json_file(calibration_json_filepath)
+#if __name__ == "__main__":
+def homography(box_list, img_name):
+    calibration_json_filepath = "..\\calibration.json"            # intrinsic matrix 포함 json 파일
+    camera_matrix=read_json_file(calibration_json_filepath)
 
-    # Homography Matrix을 구하기 위한 Image
-    train_image = cv2.imread(os.path.join(".\\source","images","img_1.jpg"),cv2.IMREAD_COLOR)
-    train_image = cv2.cvtColor(train_image ,cv2.COLOR_BGR2RGB)
+    # # Homography Matrix을 구하기 위한 Image
+    # train_image = cv2.imread(os.path.join(".\\source","images","img_1.jpg"),cv2.IMREAD_COLOR)
+    # train_image = cv2.cvtColor(train_image ,cv2.COLOR_BGR2RGB)
 
-    # Test Image
-    test_image = cv2.imread(os.path.join(".\\source","images","test_img_1.jpg"),cv2.IMREAD_COLOR)
-    test_image =cv2.cvtColor(test_image ,cv2.COLOR_BGR2RGB)
+    # # Test Image
+    # test_image = cv2.imread(os.path.join(".\\source","images","test_img_1.jpg"),cv2.IMREAD_COLOR)
+    # test_image =cv2.cvtColor(test_image ,cv2.COLOR_BGR2RGB)
 
     """
     Extrinsic Calibration img_1.jpg(chessboard and ball)
@@ -101,25 +102,28 @@ if __name__ == "__main__":
         homography, _ = cv2.findHomography(image_points, homo_object_point)
         
         # homography Matrix pickle 형식으로 저장
-        with open("homography.pickle","wb") as fw:
+        with open(".\\save_pickle\\homography.pickle","wb") as fw:
             pickle.dump(homography, fw)
 
         # Draw Point and show Distance
-        image = d_tool.draw_distance(train_image, homography, image_points)
+        image = draw_distance(train_image, homography, image_points)
 
     else:
+        answer_list=[]
         # homography Matrix 불러오기
-        with open("homography.pickle","rb") as fr:
+        with open(".\\save_pickle\\homography.pickle","rb") as fr:
             homography = pickle.load(fr)
 
         # Distance Estimation Point 
-        test_image_points=np.array([
-            [156, 252],
-            [425, 255],
-        ],dtype=np.float32)
+        # test_image_points=np.array([
+        #     [156, 252],
+        #     [425, 255],
+        # ],dtype=np.float32)
 
         # Draw Point and show Distance
-        image = d_tool.draw_distance(test_image, homography, test_image_points)
-
-    plt.imshow(image)
-    plt.show()
+        # image = draw_distance(test_image, homography, test_image_points)
+        # answer_list
+        return homo_answer_list(homography, box_list, img_name)
+        
+    # plt.imshow(image)
+    # plt.show()
