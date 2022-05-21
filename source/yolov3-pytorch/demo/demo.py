@@ -3,6 +3,7 @@ from train.loss import *
 import json
 import cv2
 from util.calibration_parser import *
+from homography_estimation import *
 
 class Demo:
     def __init__(self, model, data, data_loader, device, hparam):
@@ -62,7 +63,11 @@ class Demo:
                         for ans_list in save_csv(final_box_list, name = img_name):
                             answers.append(ans_list)
                     elif mode == "dist":
-                        for ans_list in predict_distance(final_box_list, img_name):
+                        #FIXME predict_distance -> FOV를 사용한 거리 측정
+                        # for ans_list in predict_distance(final_box_list, img_name):
+                        #     answers.append(ans_list)
+                        #FIXME homography를 사용한 거리 측정
+                        for ans_list in homography(final_box_list, img_name):
                             answers.append(ans_list)
 
         if mode !="None":
