@@ -1,8 +1,5 @@
 import glob
-import xml.etree.ElementTree as ET
-
 import numpy as np
-
 from kmeans import kmeans, avg_iou
 
 ANNOTATIONS_PATH = "source\\yolov3-pytorch\\datasets\\train\\Annotations"
