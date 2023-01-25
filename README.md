@@ -25,11 +25,11 @@
 ### 실제 깊이 추정
 `/source/prediction_proejction.py` : Projection method를 이용한 추정 (xycar 카메라로 작동)
 
-![]("./assets/projection.jpg")
+![](./assets/projection.jpg)
 
 `/source/prediction_homography.py` : Prespective method를 이용한 추정 (저장된 이미지 하나로 작동)
 
-![]("./assets/homography.jpg")
+![](./assets/homography.jpg)
 - - -
 
 ## Further
