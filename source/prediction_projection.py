@@ -1,31 +1,54 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# import rospy
-import cv2, math, json, sys, rospy
-import numpy as np
-from yolov3_trt_ros.msg import BoundingBoxes, BoundingBox
+"""
+Predict distances(depth) of bounding boxes of ping-pong balls with xycar camera.
+Using projection method!
 
-from sensor_msgs.msg import Image
+Notes:
+    * What do we need before running this script?
+        * height from ground to camera [m]
+        * instrinsic calibration results (+distance coefficients) in json file format
+        * width(height) of ping-pong balls
+        * FOVs of camera
+"""
+
+import json
+import math
+import sys
+
+import cv2
+import numpy as np
+import rospy
 from cv_bridge import CvBridge
+from sensor_msgs.msg import Image
+from yolov3_trt_ros.msg import BoundingBox, BoundingBoxes
+
 
 class Detect:
     def __init__(self):
-        rospy.Subscriber('/yolov3_trt_ros/detections', BoundingBoxes, self.bbox_callback, queue_size=1)
-        self.bboxes = []
-        self.distances = []
-
         rospy.Subscriber("/usb_cam/image_raw/", Image, self.img_callback, queue_size=1)
         self.bridge = CvBridge()
         self.image = None
 
-        self.camera_height = 0.165    # 자이카에서 카메라까지 높이
+        rospy.Subscriber('/yolov3_trt_ros/detections', BoundingBoxes, self.bbox_callback, queue_size=1)
+        self.bboxes = []
+        self.distances = []
 
+        self.camera_height = 0.165    # 자이카에서 카메라까지 높이
         self.json_path = "/home/nvidia/xycar_ws/src/newrun/yolo_trt_ros/src/calibration.json" # TODO 파일 경로 넣기
         self.camera_matrix, self.dist_coeff = self.parse_calibration(self.json_path)
         
 
     def parse_calibration(self, path):
+        """Get intrinsic, extrinsic calibration result from json file
+        
+        Returns
+        ===
+        camera_matrix (np.ndarray): intrinsic camera matrix
+        dist_coeff (np.ndarray): distance coefficient from extrinsic calibration
+        """
+
         with open(path, "r",) as f:
             calibration_json = json.load(f)
 
@@ -34,6 +57,7 @@ class Detect:
         
         return camera_matrix, np.array(dist_coeff)
         
+
     def parse_intrinsic_calibration(self, intrinsic):
         fx = intrinsic["fx"]
         fy = intrinsic["fy"]
@@ -53,27 +77,27 @@ class Detect:
         boxes = []
         for box in msg.bounding_boxes:
             new_box = BoundingBox()
-            
             new_box.xmin = box.xmin * float(640) / 416
             new_box.xmax = box.xmax * float(640) / 416
             new_box.ymin = box.ymin * float(480) / 416
             new_box.ymax = box.ymax * float(480) / 416
 
             boxes.append(new_box)
+
         self.bboxes = boxes
 
 
     def img_callback(self, msg):
         image_raw = self.bridge.imgmsg_to_cv2(msg, "bgr8")
         self.image = cv2.undistort(image_raw, self.camera_matrix, self.dist_coeff, None)
-        # self.image = image_raw
 
 
     def predict(self):
+        """Get distances for each bounding boxes and Draw information on images"""
+
         distances = []
         for bbox in self.bboxes:
             dist = self.projection_method(bbox)
-            #dist = self.homo       # TODO homography 방식
             distances.append(dist)    # projection 방식
         image_drawn = self.draw_on_image(distances)
         
@@ -83,29 +107,31 @@ class Detect:
 
 
     def projection_method(self, bbox):
-        image_width_half = 320  # TODO 확인
-        image_height_half = 240
-        # image_width_half = self.image.shape[0] / 2  # TODO 확인
-        # image_height_half = self.image.shape[1] / 2
-        # print("image_width_half {}".format(image_width_half))
-        
+        """Get distance of single bounding box using projection method"""
 
-        bbox_width = abs(bbox.xmax - bbox.xmin) #px
-        cx_from_mid = (bbox.xmax + bbox.xmin) / 2 - image_width_half
-        cy_from_mid = (bbox.ymax + bbox.ymin) / 2 - image_height_half
-        
-        f = self.camera_matrix[0][0]
+        # camera info
+        f = self.camera_matrix[0][0] # focal length
         FOV_H_half = 46.7
         FOV_V_half = 38
 
-        real_width = 0.04   # m
+        # image info
+        image_width_half = 320 
+        image_height_half = 240
 
+        # bounding box info
+        bbox_width = abs(bbox.xmax - bbox.xmin) # [px]
+        cx_from_mid = (bbox.xmax + bbox.xmin) / 2 - image_width_half
+        cy_from_mid = (bbox.ymax + bbox.ymin) / 2 - image_height_half
         xz_azimuth = FOV_H_half * cx_from_mid / image_width_half
         yz_azimuth = (FOV_V_half * cy_from_mid) / image_height_half
         # print("xz_azimuth {} / yz_azimuth {}".format(xz_azimuth, yz_azimuth))
+        
+        # object info
+        real_width = 0.04   # object width, [m]
 
-        Z = (real_width * f) / bbox_width
-        X = abs(Z * math.tan(math.radians(xz_azimuth)))
+        # distances
+        Z = (real_width * f) / bbox_width # 종방향
+        X = abs(Z * math.tan(math.radians(xz_azimuth))) # 횡방향
         Y = abs(Z * math.tan(math.radians(yz_azimuth)))  # TODO Wrong!
         # print("X {} Y {} Z {}".format(X, Y, Z))
 
@@ -152,13 +178,15 @@ class Detect:
 
 
     def draw_on_image(self, distances):
+        """Draw bounding boxes and distance info on image"""
+
         img = self.image
         for bbox, dist in zip(self.bboxes, distances):
-            # print(bbox.xmin, bbox.ymin, dist)
             dist = str(round(dist, 3))
             cv2.rectangle(img, (int(bbox.xmin), int(bbox.ymin)), (int(bbox.xmax), int(bbox.ymax)), (0, 0, 255), 1, cv2.LINE_AA)
             cv2.putText(img, dist, (int(bbox.xmin), int(bbox.ymin + 1)), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 1)
         return img
+
 
 if __name__ == '__main__':
     rospy.init_node("detection", anonymous=False)
